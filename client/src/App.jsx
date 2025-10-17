@@ -255,9 +255,22 @@ function App() {
   return (
     <div className="app">
       <header className="header">
-        <h1>Video Chat Aleatorio</h1>
-        <div className="status">
-          Estado: {status === 'disconnected' && 'Desconectado'}
+        <div className="logo">
+          <div className="logo-icon">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="35" cy="35" r="15" fill="#2196F3"/>
+              <circle cx="65" cy="35" r="15" fill="#42a5f5"/>
+              <circle cx="50" cy="65" r="15" fill="#64b5f6"/>
+            </svg>
+          </div>
+          <div className="logo-text">
+            <span className="logo-people">People</span>
+            <span className="logo-subtitle">Video Chat</span>
+          </div>
+        </div>
+        <div className="status-badge">
+          <span className="status-dot"></span>
+          {status === 'disconnected' && 'Desconectado'}
           {status === 'searching' && 'Buscando...'}
           {status === 'connected' && 'Conectado'}
         </div>
