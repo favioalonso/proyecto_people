@@ -39,21 +39,46 @@ app.use(express.json());
 // Servir archivos estáticos del cliente en producción
 app.use(express.static(path.join(__dirname, '../client/dist')));
 
+// Endpoint para obtener configuración de ICE servers (TURN) - DEBE IR ANTES del catch-all
+app.get('/api/ice-config', (req, res) => {
+  const iceServers = [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' }
+  ];
+
+  // Agregar servidor TURN si está configurado
+  if (process.env.TURN_URL && process.env.TURN_USERNAME && process.env.TURN_CREDENTIAL) {
+    iceServers.push({
+      urls: process.env.TURN_URL,
+      username: process.env.TURN_USERNAME,
+      credential: process.env.TURN_CREDENTIAL
+    });
+  }
+
+  res.json({ iceServers });
+});
+
 // Estado del servidor
 const waitingQueue = []; // Cola de usuarios esperando match
 const activeConnections = new Map(); // socketId -> { partnerId, inCall }
 
 // Función para emparejar usuarios
 function matchUsers() {
+  console.log(`[MATCHMAKING] Cola actual: ${waitingQueue.length} usuarios esperando`);
+  console.log(`[MATCHMAKING] IDs en cola: ${JSON.stringify(waitingQueue)}`);
+
   while (waitingQueue.length >= 2) {
     const user1 = waitingQueue.shift();
     const user2 = waitingQueue.shift();
+
+    console.log(`[MATCHMAKING] Intentando emparejar: ${user1} con ${user2}`);
 
     // Verificar que ambos sockets aún estén conectados
     const socket1 = io.sockets.sockets.get(user1);
     const socket2 = io.sockets.sockets.get(user2);
 
     if (!socket1 || !socket2) {
+      console.log(`[MATCHMAKING] Socket desconectado - socket1: ${!!socket1}, socket2: ${!!socket2}`);
       // Si alguno se desconectó, volver a agregar el que sigue conectado
       if (socket1) waitingQueue.unshift(user1);
       if (socket2) waitingQueue.unshift(user2);
@@ -68,8 +93,10 @@ function matchUsers() {
     socket1.emit('match_found', { partnerId: user2 });
     socket2.emit('match_found', { partnerId: user1 });
 
-    console.log(`Match encontrado: ${user1} <-> ${user2}`);
+    console.log(`[MATCHMAKING] ✅ Match encontrado exitosamente: ${user1} <-> ${user2}`);
   }
+
+  console.log(`[MATCHMAKING] Cola final: ${waitingQueue.length} usuarios`);
 }
 
 // Función para desconectar una pareja
@@ -167,28 +194,9 @@ io.on('connection', (socket) => {
   });
 });
 
-// Ruta catch-all para SPA - debe ir al final
+// Ruta catch-all para SPA - debe ir al final (después de todas las rutas API)
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/dist/index.html'));
-});
-
-// Endpoint para obtener configuración de ICE servers (TURN)
-app.get('/api/ice-config', (req, res) => {
-  const iceServers = [
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' }
-  ];
-
-  // Agregar servidor TURN si está configurado
-  if (process.env.TURN_URL && process.env.TURN_USERNAME && process.env.TURN_CREDENTIAL) {
-    iceServers.push({
-      urls: process.env.TURN_URL,
-      username: process.env.TURN_USERNAME,
-      credential: process.env.TURN_CREDENTIAL
-    });
-  }
-
-  res.json({ iceServers });
 });
 
 const PORT = process.env.PORT || 3000;
