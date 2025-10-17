@@ -55,12 +55,14 @@ function App() {
     if (!socket) return;
 
     socket.on('searching', () => {
+      console.log('[CLIENT] Evento "searching" recibido');
       setStatus('searching');
       setPartnerId(null);
       setMessages([]);
     });
 
     socket.on('match_found', ({ partnerId: newPartnerId }) => {
+      console.log('[CLIENT] Match encontrado con:', newPartnerId);
       setStatus('connected');
       setPartnerId(newPartnerId);
       setMessages([]);
@@ -185,10 +187,12 @@ function App() {
   };
 
   const handleFindMatch = async () => {
+    console.log('[CLIENT] handleFindMatch llamado, status actual:', status);
     if (socket && status === 'disconnected') {
       try {
         // Obtener permisos de cámara y micrófono antes de buscar match
         if (!localStreamRef.current) {
+          console.log('[CLIENT] Solicitando permisos de cámara/micrófono...');
           const stream = await navigator.mediaDevices.getUserMedia({
             video: true,
             audio: true
@@ -197,14 +201,18 @@ function App() {
           if (localVideoRef.current) {
             localVideoRef.current.srcObject = stream;
           }
+          console.log('[CLIENT] Permisos concedidos, stream obtenido');
         }
 
+        console.log('[CLIENT] Emitiendo evento "find_match"');
         setStatus('searching');
         socket.emit('find_match');
       } catch (error) {
         console.error('Error al acceder a cámara/micrófono:', error);
         alert('No se pudo acceder a la cámara/micrófono. Verifica los permisos en tu navegador.');
       }
+    } else {
+      console.log('[CLIENT] No se puede buscar match. Socket:', !!socket, 'Status:', status);
     }
   };
 
