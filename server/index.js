@@ -124,6 +124,11 @@ function disconnectPair(socketId) {
 io.on('connection', (socket) => {
   console.log(`Usuario conectado: ${socket.id}`);
 
+  // Enviar contador de usuarios en línea a todos
+  const onlineCount = io.sockets.sockets.size;
+  io.emit('online_count', { count: onlineCount });
+  console.log(`[ONLINE] Usuarios en línea: ${onlineCount}`);
+
   // Usuario entra a la cola de espera
   socket.on('find_match', () => {
     console.log(`Usuario ${socket.id} buscando match...`);
@@ -191,6 +196,11 @@ io.on('connection', (socket) => {
 
     // Desconectar de su pareja si estaba en llamada
     disconnectPair(socket.id);
+
+    // Actualizar contador de usuarios en línea
+    const onlineCount = io.sockets.sockets.size;
+    io.emit('online_count', { count: onlineCount });
+    console.log(`[ONLINE] Usuarios en línea: ${onlineCount}`);
   });
 });
 

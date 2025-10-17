@@ -74,7 +74,12 @@ body {
   margin-top: -4px;
 }
 
-.status-badge {
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.online-counter {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -86,12 +91,16 @@ body {
   font-size: 0.95rem;
 }
 
-.status-dot {
+.online-dot {
   width: 10px;
   height: 10px;
   background: #4CAF50;
   border-radius: 50%;
   animation: pulse 2s ease-in-out infinite;
+}
+
+.online-text {
+  color: white;
 }
 
 @keyframes pulse {
@@ -365,7 +374,7 @@ body {
   padding: 1.5rem 2rem;
   background: #1f1f1f;
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   gap: 1rem;
   box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.5);
   border-top: 1px solid rgba(255, 255, 255, 0.1);

@@ -13,6 +13,7 @@ function App() {
   const [messageInput, setMessageInput] = useState('');
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [videoEnabled, setVideoEnabled] = useState(true);
+  const [onlineUsers, setOnlineUsers] = useState(0);
 
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
@@ -94,6 +95,10 @@ function App() {
       setMessages(prev => [...prev, { text: message, isMine: false }]);
     });
 
+    socket.on('online_count', ({ count }) => {
+      setOnlineUsers(count);
+    });
+
     return () => {
       socket.off('searching');
       socket.off('match_found');
@@ -102,6 +107,7 @@ function App() {
       socket.off('webrtc_answer');
       socket.off('webrtc_ice_candidate');
       socket.off('receive_message');
+      socket.off('online_count');
     };
   }, [socket]);
 
@@ -268,11 +274,11 @@ function App() {
             <span className="logo-subtitle">Video Chat</span>
           </div>
         </div>
-        <div className="status-badge">
-          <span className="status-dot"></span>
-          {status === 'disconnected' && 'Desconectado'}
-          {status === 'searching' && 'Buscando...'}
-          {status === 'connected' && 'Conectado'}
+        <div className="header-right">
+          <div className="online-counter">
+            <span className="online-dot"></span>
+            <span className="online-text">{onlineUsers.toLocaleString()} usuarios en línea</span>
+          </div>
         </div>
       </header>
 
