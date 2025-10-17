@@ -178,10 +178,27 @@ function App() {
     }
   };
 
-  const handleFindMatch = () => {
+  const handleFindMatch = async () => {
     if (socket && status === 'disconnected') {
-      setStatus('searching');
-      socket.emit('find_match');
+      try {
+        // Obtener permisos de cámara y micrófono antes de buscar match
+        if (!localStreamRef.current) {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: true
+          });
+          localStreamRef.current = stream;
+          if (localVideoRef.current) {
+            localVideoRef.current.srcObject = stream;
+          }
+        }
+
+        setStatus('searching');
+        socket.emit('find_match');
+      } catch (error) {
+        console.error('Error al acceder a cámara/micrófono:', error);
+        alert('No se pudo acceder a la cámara/micrófono. Verifica los permisos en tu navegador.');
+      }
     }
   };
 
